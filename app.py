@@ -1,15 +1,12 @@
 # Original product reference: https://huggingface.co/spaces/fffiloni/Image-to-Story
+# Used Opus 5.5 on Medium Thinking to identify all items to remove that are uneeded for Case Study 4. This was in large part the monitoring references for the Grafana and Prometheus on the last case study.
 
 import gradio as gr
 import re
 import os
 import time
-import metrics  # Prometheus metrics are defined in metrics.py (written by Claude Opus 5.5 on Medium Thinking mode.)
 
 hf_token = os.environ.get('HF_TOKEN')
-# Monitor imports as suggested by Claude Opus 5.5 with Medium thinking in conjunction with the monitor.py script.
-import monitor
-monitor.start_monitor()
 
 from gradio_client import Client, handle_file
 
@@ -18,8 +15,6 @@ clipi_client = Client("fffiloni/CLIP-Interrogator-2")
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from huggingface_hub import InferenceClient
-
-from prometheus_client import start_http_server
 
 
 model_path = "Qwen/Qwen2.5-0.5B-Instruct"  # Qwen/Qwen2.5-3B-Instruct was used in Case Study 1, but when prompting Claude Opus 5.5 with "I can't use Qwen2.5-3B-Instruct anymore as that is far too large. What other model should I use that is much smaller in size?", it suggests we switch to the 0.5B version to save space on the VM as the original 3B model is quite large (~6gb)
@@ -161,7 +156,6 @@ with gr.Blocks(css=css) as demo:
             <p style="text-align: center">Upload an image, get safety advice based on the image content!</p>
             """
         )
-        warning_banner = gr.HTML()  # Suggested by Claude Opus 5.5 on Medium thinking in conjunction with monitor.py
         with gr.Row():
             with gr.Column():
                 image_in = gr.Image(label="Image Input", type="filepath", elem_id="image-in")
@@ -172,16 +166,11 @@ with gr.Blocks(css=css) as demo:
                 safety_advice = gr.Markdown(label="Generated Safety Advice", elem_id="safety_advice")  # Textbox was changed to Markdown as suggested by Claude 5.5 on Medium thinking to better format the LLM output.
         
     submit_btn.click(fn=infer, inputs=[image_in, text_input, running_platform], outputs=[safety_advice])
-    monitor_timer = gr.Timer(5)  # Suggested by Claude Opus 5.5 on Medium thinking in conjunction with monitor.py
-    monitor_timer.tick(fn=monitor.get_warning_html, outputs=[warning_banner], show_progress="hidden")  # Suggested by Claude Opus 5.5 on Medium thinking in conjunction with monitor.py
 
 # The below code segment is from the class CaseStudy3 GitHub repository.
-# It was then modifie by ChatGPT to fix the start_http_server(8000) line never running
+# It was then modified by ChatGPT to fix the start_http_server(8000) line never running
 
 if __name__ == "__main__":
-    # Expose Prometheus metrics at :8000/metrics
-    start_http_server(8000)
-
     # Start Gradio application
     demo.queue(max_size=12).launch(
         server_name="0.0.0.0",

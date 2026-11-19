@@ -1,9 +1,10 @@
 # The following docker ignore file was suggeted by Claude Opus 5.5 on Medium Thinking mode when prompted why our docker builds take so long.
+# It was then updated for Case Study 4 by removing the items Opus 5.5 on Medium Thinking helped identity as being no longer needed, and it also recommended adding the last three items.
 
 .git
 .env
-docker-compose.yml
-Prometheus/
-Grafana/
 venv/
 __pycache__/
+.github/
+.venv/
+README.md
